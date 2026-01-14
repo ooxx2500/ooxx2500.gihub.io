@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的購物網站</title>
+    <style>
+        :root {
+            --primary: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            color: #333;
+        }
+        header {
+            background: var(--dark);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+        .logo { font-size: 1.8rem; font-weight: bold; }
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .banner {
+            margin-top: 80px;
+            height: 400px;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+        }
+        .banner h1 { font-size: 3.5rem; }
+        .banner p { font-size: 1.5rem; }
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .product {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .product:hover { transform: translateY(-10px); }
+        .product img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 20px;
+            text-align: center;
+        }
+        .product h3 { margin: 0 0 10px; }
+        .price {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+        .add-to-cart {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .add-to-cart:hover { background: #c0392b; }
+
+        /* 購物車側邊欄 */
+        .cart-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            transition: right 0.4s;
+            z-index: 2000;
+            overflow-y: auto;
+        }
+        .cart-sidebar.open { right: 0; }
+        .cart-header {
+            background: var(--dark);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        .close-cart {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+        .cart-items { padding: 20px; }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+        .cart-item-info { flex: 1; }
+        .quantity {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .quantity button {
+            width: 30px;
+            height: 30px;
+            background: #ddd;
+            border: none;
+            cursor: pointer;
+        }
+        .quantity span { margin: 0 10px; }
+        .remove {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .cart-total {
+            padding: 20px;
+            text-align: right;
+            font-size: 1.3rem;
+            border-top: 2px solid #eee;
+        }
+        .checkout {
+            display: block;
+            width: 90%;
+            margin: 20px auto;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .cart-sidebar { width: 100%; right: -100%; }
+            .banner h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">我的購物商城</div>
+            <div class="cart-icon" id="cartIcon">
+                🛒
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+        </nav>
+    </header>
+
+    <div class="banner">
+        <div>
+            <h1>歡迎來到我的購物商城</h1>
+            <p>精選商品，限時優惠中！</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2 style="text-align:center; margin-bottom:30px;">熱門商品</h2>
+        <div class="products" id="products">
+            <!-- 商品會由 JS 動態產生 -->
+        </div>
+    </div>
+
+    <!-- 購物車側邊欄 -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>購物車</h2>
+            <span class="close-cart" id="closeCart">×</span>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- 購物車項目會動態插入 -->
+        </div>
+        <div class="cart-total">
+            總計: <span id="cartTotal">$0</span>
+        </div>
+        <button class="checkout">結帳去 →</button>
+    </div>
+
+    <script>
+        // 假商品資料（你可以自己替換圖片連結、名稱、價格）
+        const products = [
+            { id: 1, name: "無線耳機", price: 1299, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500" },
+            { id: 2, name: "機械鍵盤", price: 2999, img: "https://images.unsplash.com/photo-1587829741301-dc2866570cc9?w=500" },
+            { id: 3, name: "智能手錶", price: 8990, img: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500" },
+            { id: 4, name: "行動電源", price: 899, img: "https://images.unsplash.com/photo-1609091834234-9ea01f57af5c?w=500" },
+            { id: 5, name: "藍牙音箱", price: 1999, img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=500" },
+            { id: 6, name: "手機殼", price: 399, img: "https://images.unsplash.com/photo-1601598851547-59988e4a70d7?w=500" },
+            { id: 7, name: "筆電支架", price: 799, img: "https://images.unsplash.com/photo-1527864550417-8bf12f729d2c?w=500" },
+            { id: 8, name: "遊戲滑鼠", price: 1799, img: "https://images.unsplash.com/photo-1527814050087-37916d5903b6?w=500" },
+            { id: 9, name: "咖啡杯", price: 599, img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500" }
+        ];
+
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+        const productsContainer = document.getElementById('products');
+        const cartIcon = document.getElementById('cartIcon');
+        const cartSidebar = document.getElementById('cartSidebar');
+        const closeCart = document.getElementById('closeCart');
+        const cartItems = document.getElementById('cartItems');
+        const cartCount = document.getElementById('cartCount');
+        const cartTotal = document.getElementById('cartTotal');
+
+        // 渲染商品
+        function renderProducts() {
+            products.forEach(product => {
+                const div = document.createElement('div');
+                div.classList.add('product');
+                div.innerHTML = `
+                    <img src="${product.img}" alt="${product.name}">
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <div class="price">NT$${product.price}</div>
+                        <button class="add-to-cart" data-id="${product.id}">加入購物車</button>
+                    </div>
+                `;
+                productsContainer.appendChild(div);
+            });
+
+            // 加入購物車按鈕事件
+            document.querySelectorAll('.add-to-cart').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    const item = products.find(p => p.id === id);
+                    const existing = cart.find(c => c.id === id);
+                    if (existing) {
+                        existing.quantity += 1;
+                    } else {
+                        cart.push({ ...item, quantity: 1 });
+                    }
+                    updateCart();
+                });
+            });
+        }
+
+        // 更新購物車顯示
+        function updateCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartTotal.textContent = `NT$${cart.reduce((sum, item) => sum + item.price * item.quantity, 0)}`;
+
+            cartItems.innerHTML = '';
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align:center;color:#999;">購物車是空的</p>';
+            } else {
+                cart.forEach(item => {
+                    const div = document.createElement('div');
+                    div.classList.add('cart-item');
+                    div.innerHTML = `
+                        <img src="${item.img}" alt="${item.name}">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <p>NT$${item.price}</p>
+                            <div class="quantity">
+                                <button class="decrease" data-id="${item.id}">-</button>
+                                <span>${item.quantity}</span>
+                                <button class="increase" data-id="${item.id}">+</button>
+                            </div>
+                            <div class="remove" data-id="${item.id}">移除</div>
+                        </div>
+                    `;
+                    cartItems.appendChild(div);
+                });
+
+                // 數量增減與移除事件
+                document.querySelectorAll('.increase').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = parseInt(btn.dataset.id);
+                        const item = cart.find(c => c.id === id);
+                        item.quantity += 1;
+                        updateCart();
+                    });
+                });
+                document.querySelectorAll('.decrease').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = parseInt(btn.dataset.id);
+                        const item = cart.find(c => c.id === id);
+                        if (item.quantity > 1) {
+                            item.quantity -= 1;
+                        } else {
+                            cart = cart.filter(c => c.id !== id);
+                        }
+                        updateCart();
+                    });
+                });
+                document.querySelectorAll('.remove').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = parseInt(btn.dataset.id);
+                        cart = cart.filter(c => c.id !== id);
+                        updateCart();
+                    });
+                });
+            }
+        }
+
+        // 開關購物車
+        cartIcon.addEventListener('click', () => {
+            cartSidebar.classList.add('open');
+        });
+        closeCart.addEventListener('click', () => {
+            cartSidebar.classList.remove('open');
+        });
+
+        // 初始化
+        renderProducts();
+        updateCart();
+    </script>
+</body>
+</html>
